@@ -5,6 +5,7 @@ import com.zszdevelop.file.domian.FileInfo;
 import com.zszdevelop.file.domian.FileResult;
 import com.zszdevelop.file.service.MinioFileService;
 import com.zszdevelop.file.utils.ContentTypeUtils;
+import com.zszdevelop.file.utils.FileUploadUtils;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
@@ -80,6 +81,10 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     public FileResult<FileInfo> upload(MultipartFile multipartFile, String filename) {
 
+        FileResult<FileInfo> checkResult = FileUploadUtils.check(multipartFile,filename);
+        if (!checkResult.isSuccess()) {
+            return checkResult;
+        }
         try {
             InputStream in = multipartFile.getInputStream();
             String contentType = multipartFile.getContentType();

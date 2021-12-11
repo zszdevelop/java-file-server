@@ -1,11 +1,15 @@
 package com.zszdevelop.file.controller;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.IdUtil;
 import com.zszdevelop.file.domian.FileInfo;
 import com.zszdevelop.file.domian.FileResult;
 import com.zszdevelop.file.service.FileService;
 import com.zszdevelop.file.utils.ContentTypeUtils;
+import com.zszdevelop.file.utils.FileUploadUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +22,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -50,12 +56,15 @@ public class FileController {
         }
         List<FileResult<FileInfo>> list = new ArrayList<>();
         for (MultipartFile file : multipartFiles) {
-            FileResult<FileInfo> fileResult = fileService.upload(file, file.getOriginalFilename());
+            String pathFilename = getNewPathFilename(file);
+            FileResult<FileInfo> fileResult = fileService.upload(file, pathFilename);
             list.add(fileResult);
         }
 
         return FileResult.success("上传成功", list);
     }
+
+
 
 
     /**
@@ -121,6 +130,17 @@ public class FileController {
         return FileResult.success("成功", signedUrl);
     }
 
+    /**
+     * 文件是否存在
+     *
+     * @param fileName 文件存储路径(包含文件名和路径)
+     */
+    @GetMapping("/exists")
+    public FileResult<Boolean> exists(String fileName) {
+        boolean exists = fileService.exists(fileName);
+        return FileResult.success("成功", exists);
+    }
+
 
     /**
      * 删除文件
@@ -134,5 +154,21 @@ public class FileController {
         return fileResult;
     }
 
+
+    /**
+     * 获取包含路径的文件名
+     * TODO 此处根据项目实际情况处理，制定存储路径和重命名文件
+     * @param file
+     * @return
+     */
+    private String getNewPathFilename(MultipartFile file) {
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        String datePath =  sdf.format(now);
+        String extension = FileUtil.extName(file.getOriginalFilename());
+
+        String pathFilename = datePath + File.separator + IdUtil.fastSimpleUUID() + "." + extension;
+        return pathFilename;
+    }
 
 }

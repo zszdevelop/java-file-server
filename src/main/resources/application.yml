@@ -6,6 +6,12 @@ server:
     # 应用的访问路径
     context-path: /
 file-server:
+  base:
+    #默认的文件名最大长度 100
+    fileNameMaxlength: 100
+    # 文件大小限制 50M(50 * 1024 * 1024=5242800)
+    maxSize: 10240000
+  # minio 文件服务
   minio:
     # minio地址
     endpoint: http://47.119.125.3:9000
@@ -17,3 +23,8 @@ file-server:
     bucketName: test
     # 预览过期时间，默认60分钟
     expiry: 120
+  # 本地文件上传
+  local:
+    baseDir: /Users/zsz/Desktop/temp/jfs
+    domain: http://127.0.0.1:9300
+    prefix: /statics

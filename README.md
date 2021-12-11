@@ -31,6 +31,12 @@ java常见文件服务实现，封装统一常用 *RESTful* *API*，针对各文
 
   - Minio 实现可支持设置过期时间
 
+- 文件是否存在
+
+  ```
+  GET http://localhost:9310/file/exists
+  ```
+
 - 删除文件
 
   ```
@@ -55,13 +61,13 @@ java常见文件服务实现，封装统一常用 *RESTful* *API*，针对各文
    文件服务实现有很多种（本地存储、Minio、云存储等），每种类型除了支持正常上传、下载、预览、删除外。还提供了一些其他特性，并不希望我们的文件服务变得只支持通用API，对于平台特性的也能够支持。
 
    ```
-   ├── service            // service层
-   │       └── FileService                    // 通用文件服务接口
-   |				└── LocalFileService               // 本地存储扩展接口-继承通用文件服务
-   |				└── MinioFileService               // minio扩展接口-继承通用文件服务
-   |				└──	impl
-   |						└── LocalFileServiceImpl               // 本地存储实现
-   |						└── MinioFileServiceImpl               // minio实现
+   ├── service            								 // service层
+   │   └── FileService                    // 通用文件服务接口
+   |		└── LocalFileService               // 本地存储扩展接口-继承通用文件服务
+   |		└── MinioFileService               // minio扩展接口-继承通用文件服务
+   |		└──	impl
+   |				└── LocalFileServiceImpl       // 本地存储实现
+   |				└── MinioFileServiceImpl       // minio实现
    ```
 
 3. 返回结果封装
@@ -87,6 +93,33 @@ java常见文件服务实现，封装统一常用 *RESTful* *API*，针对各文
     }
     ```
 
-    
+
+4. 文件路径与重命名
+
+   - 文件路径与重命名都在外部控制
+
+   - 所有的service传的文件名，都是包含 `文件的路径`与`文件名（开发者决定是否重命名）`，方便开发者们制定自定义
+
+   - 默认的文件名处理(日期+uuid)
+
+     ```java
+      /**
+          * 获取包含路径的文件名
+          * TODO 此处根据项目实际情况处理，制定存储路径和重命名文件
+          * @param file
+          * @return
+          */
+         private String getNewPathFilename(MultipartFile file) {
+             Date now = new Date();
+             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+             String datePath =  sdf.format(now);
+             String extension = FileUtil.extName(file.getOriginalFilename());
+     
+             String pathFilename = datePath + File.separator + IdUtil.fastSimpleUUID() + "." + extension;
+             return pathFilename;
+         }
+     ```
+
+     
 
 ​	
