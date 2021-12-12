@@ -3,13 +3,17 @@ package com.zszdevelop.file.controller;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
+import cn.hutool.json.serialize.JSONWriter;
 import com.zszdevelop.file.domian.FileInfo;
 import com.zszdevelop.file.domian.FileResult;
 import com.zszdevelop.file.service.FileService;
-import com.zszdevelop.file.utils.ContentTypeUtils;
-import com.zszdevelop.file.utils.FileUploadUtils;
+import com.zszdevelop.file.utils.JfsFileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,10 +21,9 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -76,18 +79,23 @@ public class FileController {
     public void download(HttpServletResponse response, String fileName) {
 
         try {
-            response.setHeader("Content-Disposition", "attachment;filename=" +
-                    URLEncoder.encode(fileName, "UTF-8"));
             FileResult<InputStream> fileResult = fileService.download(fileName);
             if (fileResult.isSuccess()) {
                 InputStream in = fileResult.getData();
-                response.setContentType("application/x-msdownload");
-                response.setHeader("Content-Disposition", "attachment;filename=" + new String(fileName.getBytes(), "ISO-8859-1"));
-                response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+                String downloadName = fileName.substring(fileName.lastIndexOf("/")+1);;
+                response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                JfsFileUtils.setResponseHeader(response, downloadName);
+
                 ServletOutputStream out = response.getOutputStream();
                 IoUtil.copy(in, out);
                 IoUtil.close(out);
                 IoUtil.close(in);
+            }else {
+                response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                PrintWriter writer=response.getWriter();
+                writer.write(JSONUtil.toJsonStr(fileResult));
+                writer.flush();
             }
 
         } catch (Exception e) {
@@ -104,17 +112,26 @@ public class FileController {
     @GetMapping("/preview")
     public void preview(HttpServletResponse response, String fileName) {
         try {
-            ServletOutputStream out = response.getOutputStream();
+
             FileResult<InputStream> fileResult = fileService.download(fileName);
-            InputStream in = fileResult.getData();
-            // response.setContentType() 不用设置，会以最合适的方式下载
-            // attachment;附件下载， inline; 在线预览
-            response.setHeader("Content-Disposition", "inline; filename=" + URLEncoder.encode(fileName, "UTF-8"));
-            IoUtil.copy(in, out);
-            IoUtil.close(out);
-            IoUtil.close(in);
+            if (fileResult.isSuccess()) {
+                ServletOutputStream out = response.getOutputStream();
+                InputStream in = fileResult.getData();
+                // response.setContentType() 不用设置，会以最合适的方式下载
+                String downloadName = fileName.substring(fileName.lastIndexOf("/") + 1);
+
+                JfsFileUtils.setResponseHeader(response, downloadName, false);
+                IoUtil.copy(in, out);
+                IoUtil.close(out);
+                IoUtil.close(in);
+            }else {
+                response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+                PrintWriter writer=response.getWriter();
+                writer.write(JSONUtil.toJsonStr(fileResult));
+                writer.flush();
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("FileService  文件预览失败{}", e.getMessage(), e);
         }
 
     }
@@ -138,7 +155,8 @@ public class FileController {
     @GetMapping("/exists")
     public FileResult<Boolean> exists(String fileName) {
         boolean exists = fileService.exists(fileName);
-        return FileResult.success("成功", exists);
+        FileResult<Boolean> result = FileResult.success("成功", exists);
+        return result;
     }
 
 

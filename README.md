@@ -3,7 +3,14 @@
 
 java常见文件服务实现，封装统一常用 *RESTful* *API*，针对各文件服务特性提供特性service。
 
-### 1.1 文件 *RESTful* API
+### 1.1 支持文件服务类型
+
+- 本地存储
+- Minio
+- FastDFS（开发中）
+- 阿里云存储（开发中）
+
+### 1.2 文件 *RESTful* API
 
 - 文件上传
 
@@ -14,19 +21,19 @@ java常见文件服务实现，封装统一常用 *RESTful* *API*，针对各文
 - 文件下载
 
   ```
-  GET http://localhost:9310/file/download
+  GET http://localhost:9310/file/download?fileName=2021/12/12/test.png
   ```
 
 - 预览文件（仅支持图片和Pdf）
 
   ```
-  GET http://localhost:9310/file/preview
+  GET http://localhost:9310/file/preview?fileName=2021/12/12/test.png
   ```
 
 - 获取预览地址
 
   ```
-  GET http://localhost:9310/file/getPreviewUrl
+  GET http://localhost:9310/file/getPreviewUrl?fileName=2021/12/12/test.png
   ```
 
   - Minio 实现可支持设置过期时间
@@ -34,21 +41,16 @@ java常见文件服务实现，封装统一常用 *RESTful* *API*，针对各文
 - 文件是否存在
 
   ```
-  GET http://localhost:9310/file/exists
+  GET http://localhost:9310/file/exists?fileName=2021/12/12/test.png
   ```
 
 - 删除文件
 
   ```
-  DELETE http://localhost:9310/file/delete
+  DELETE http://localhost:9310/file/delete?fileName=2021/12/12/test.png
   ```
 
-### 1.2 支持文件服务类型
 
-- 本地存储
-- Minio
-- FastDFS（开发中）
-- 阿里云存储（开发中）
 
 ## 2. 实现思路
 

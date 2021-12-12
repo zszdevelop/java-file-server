@@ -5,13 +5,11 @@ import com.zszdevelop.file.domian.FileInfo;
 import com.zszdevelop.file.domian.FileResult;
 import com.zszdevelop.file.service.MinioFileService;
 import com.zszdevelop.file.utils.ContentTypeUtils;
-import com.zszdevelop.file.utils.FileUploadUtils;
+import com.zszdevelop.file.utils.JfsFileUtils;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021-29-29
  */
 @Slf4j
-@Primary
+//@Primary
 @Service
 public class MinioFileServiceImpl implements MinioFileService {
 
@@ -81,7 +79,7 @@ public class MinioFileServiceImpl implements MinioFileService {
     @Override
     public FileResult<FileInfo> upload(MultipartFile multipartFile, String filename) {
 
-        FileResult<FileInfo> checkResult = FileUploadUtils.check(multipartFile,filename);
+        FileResult<FileInfo> checkResult = JfsFileUtils.check(multipartFile,filename);
         if (!checkResult.isSuccess()) {
             return checkResult;
         }
