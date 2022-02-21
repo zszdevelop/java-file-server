@@ -21,7 +21,7 @@ file-server:
     secretKey: minio123
     # 存储的bucket名称，服务启动自动创建
     bucketName: test
-    # 预览过期时间，默认60分钟
+    # 预览过期时间，默认60分钟，过期时间设置为0的时候，不设置过期时间
     expiry: 120
   # 本地文件上传
   local:

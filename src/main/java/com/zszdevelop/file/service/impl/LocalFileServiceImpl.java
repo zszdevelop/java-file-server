@@ -23,7 +23,7 @@ import java.io.InputStream;
  * @date 2021-11-11
  */
 @Slf4j
-@Primary
+//@Primary
 @Service
 public class LocalFileServiceImpl implements LocalFileService {
 

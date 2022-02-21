@@ -10,6 +10,7 @@ import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021-29-29
  */
 @Slf4j
-//@Primary
+@Primary
 @Service
 public class MinioFileServiceImpl implements MinioFileService {
 
@@ -196,15 +197,18 @@ public class MinioFileServiceImpl implements MinioFileService {
 
     @Override
     public String getPreviewUrl(String fileName) {
-
+        Integer expiryTime = minioProperties.getExpiry();
         String url = null;
         try {
-            GetPresignedObjectUrlArgs objectUrlArgs = GetPresignedObjectUrlArgs.builder()
+            GetPresignedObjectUrlArgs.Builder builder = GetPresignedObjectUrlArgs.builder()
                     .method(Method.GET)
                     .bucket(minioProperties.getBucketName())
-                    .object(fileName)
-                    .expiry(minioProperties.getExpiry(), TimeUnit.MINUTES)
-                    .build();
+                    .object(fileName);
+            // 过期时间设置为0的时候，不设置过期时间
+            if (expiryTime!=null&&expiryTime!=0){
+                builder .expiry(expiryTime, TimeUnit.MINUTES);
+            }
+            GetPresignedObjectUrlArgs objectUrlArgs = builder.build();
             url = minioClient.getPresignedObjectUrl(objectUrlArgs);
         } catch (Exception e) {
             log.error("FileService  minio文件获取预览Url失败{}", e.getMessage(), e);
